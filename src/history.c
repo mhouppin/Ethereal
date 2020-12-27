@@ -25,6 +25,18 @@
 #include "thread.h"
 #include "types.h"
 
+int historyBonus(int depth)
+{
+    // Make the history bonus follow a binomial shape, peaking at depth 20
+
+    if (depth <= 20)
+        return depth * depth;
+    else if (depth < 40)
+        return (40 - depth) * (40 - depth);
+    else
+        return 1;
+}
+
 void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int depth) {
 
     int entry, bonus, colour = thread->board.turn;
@@ -54,8 +66,7 @@ void updateHistoryHeuristics(Thread *thread, uint16_t *moves, int length, int de
     // Depth 0 gives no bonus in any case
     if (length == 1 && depth <= 3) return;
 
-    // Cap update size to avoid saturation
-    bonus = MIN(depth*depth, HistoryMax);
+    bonus = historyBonus(depth);
 
     for (int i = 0; i < length; i++) {
 
@@ -100,7 +111,7 @@ void updateKillerMoves(Thread *thread, uint16_t move) {
 
 void updateCaptureHistories(Thread *thread, uint16_t best, uint16_t *moves, int length, int depth) {
 
-    const int bonus = MIN(depth * depth, HistoryMax);
+    const int bonus = historyBonus(depth);
 
     for (int i = 0; i < length; i++) {
 
