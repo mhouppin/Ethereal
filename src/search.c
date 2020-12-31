@@ -201,6 +201,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     int inCheck, isQuiet, improving, extension, singular, skipQuiets = 0;
     int eval, value = -MATE, best = -MATE, futilityMargin, seeMargin[2];
     uint16_t move, ttMove = NONE_MOVE, bestMove = NONE_MOVE;
+    uint16_t refutingMove = NONE_MOVE;
     uint16_t quietsTried[MAX_MOVES], capturesTried[MAX_MOVES];
     MovePicker movePicker;
     PVariation lpv;
@@ -387,6 +388,10 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
     // Step 10. Initialize the Move Picker and being searching through each
     // move one at a time, until we run out or a move generates a cutoff
     initMovePicker(&movePicker, thread, ttMove);
+
+    if (movePicker.counter == movePicker.killer1 || movePicker.counter == movePicker.killer2)
+        refutingMove = movePicker.counter;
+
     while ((move = selectNextMove(&movePicker, board, skipQuiets)) != NONE_MOVE) {
 
         // MultiPV and searchmoves may limit our search options
@@ -477,10 +482,12 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
         // Step 14 (~60 elo). Extensions. Search an additional ply when the move comes from the
         // Transposition Table and appears to beat all other moves by a fair margin. Otherwise,
         // extend for any position where our King is checked. We also selectivly extend moves
-        // with very strong continuation histories, so long as they are along the PV line
+        // with very strong continuation histories, so long as they are along the PV line, and
+        // quiets that have been found to be double refutations (killers and countermoves)
 
         extension = singular ? singularity(thread, &movePicker, ttValue, depth, beta)
-                  : inCheck || (isQuiet && PvNode && cmhist > HistexLimit && fmhist > HistexLimit);
+                  : inCheck || (isQuiet && PvNode && cmhist > HistexLimit && fmhist > HistexLimit)
+                  || (move == refutingMove);
 
         newDepth = depth + (extension && !RootNode);
 
