@@ -511,7 +511,11 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
             R -= !!board->kingAttackers;
 
             // Reduce for Killers and Counters
-            R -= movePicker.stage < STAGE_QUIET;
+            if (movePicker.stage < STAGE_QUIET) {
+                R -= (move == movePicker.killer1)
+                    + (move == movePicker.killer2)
+                    + (move == movePicker.counter);
+            }
 
             // Adjust based on history scores
             R -= MAX(-2, MIN(2, hist / 5000));
