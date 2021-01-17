@@ -45,7 +45,7 @@ static int getBestMoveIndex(MovePicker *mp, int start, int end) {
 }
 
 
-void initMovePicker(MovePicker *mp, Thread *thread, uint16_t ttMove) {
+void initMovePicker(MovePicker *mp, Thread *thread, uint16_t ttMove, int staticEval) {
 
     // Start with the table move
     mp->stage = STAGE_TABLE;
@@ -55,15 +55,15 @@ void initMovePicker(MovePicker *mp, Thread *thread, uint16_t ttMove) {
     getRefutationMoves(thread, &mp->killer1, &mp->killer2, &mp->counter);
 
     // General housekeeping
-    mp->threshold = 0;
+    mp->threshold = -staticEval / 426 * 82;
     mp->thread = thread;
     mp->type = NORMAL_PICKER;
 }
 
-void initSingularMovePicker(MovePicker *mp, Thread *thread, uint16_t ttMove) {
+void initSingularMovePicker(MovePicker *mp, Thread *thread, uint16_t ttMove, int staticEval) {
 
     // Simply skip over the TT move
-    initMovePicker(mp, thread, ttMove);
+    initMovePicker(mp, thread, ttMove, staticEval);
     mp->stage = STAGE_GENERATE_NOISY;
 
 }

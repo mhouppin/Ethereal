@@ -395,7 +395,7 @@ int search(Thread *thread, PVariation *pv, int alpha, int beta, int depth) {
 
     // Step 11. Initialize the Move Picker and being searching through each
     // move one at a time, until we run out or a move generates a cutoff
-    initMovePicker(&movePicker, thread, ttMove);
+    initMovePicker(&movePicker, thread, ttMove, eval);
     while ((move = selectNextMove(&movePicker, board, skipQuiets)) != NONE_MOVE) {
 
         // MultiPV and searchmoves may limit our search options
@@ -822,7 +822,7 @@ int singularity(Thread *thread, MovePicker *mp, int ttValue, int depth, int beta
     revert(thread, board, mp->tableMove);
 
     // Iterate over each move, except for the table move
-    initSingularMovePicker(&movePicker, thread, mp->tableMove);
+    initSingularMovePicker(&movePicker, thread, mp->tableMove, thread->evalStack[thread->height]);
     while ((move = selectNextMove(&movePicker, board, skipQuiets)) != NONE_MOVE) {
 
         assert(move != mp->tableMove); // Skip the table move
